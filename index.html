@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RETAPLOX | One-File Platform</title>
+    <style>
+        /* --- STYLING: CSS Variables for Instant Theming --- */
+        :root {
+            --bg: #121212;
+            --nav: #1e1e1e;
+            --card: #252525;
+            --text: #ffffff;
+            --subtext: #aaaaaa;
+            --accent: #00a2ff;
+            --success: #00e676;
+            --font: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        [data-theme="light"] {
+            --bg: #f4f4f5;
+            --nav: #ffffff;
+            --card: #ffffff;
+            --text: #111111;
+            --subtext: #666666;
+            --accent: #0074bd;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; transition: background 0.2s, color 0.2s; }
+        body { background: var(--bg); color: var(--text); font-family: var(--font); overflow-x: hidden; }
+
+        /* --- LAYOUT COMPONENTS --- */
+        #navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; height: 60px; background: var(--nav);
+            border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 100;
+        }
+
+        .logo { font-weight: 800; font-size: 22px; letter-spacing: -1px; cursor: pointer; }
+        .logo span { color: var(--accent); }
+
+        .nav-links { display: flex; gap: 20px; }
+        .nav-item { cursor: pointer; font-weight: 600; font-size: 14px; color: var(--subtext); }
+        .nav-item:hover { color: var(--text); }
+
+        .user-stats { display: flex; align-items: center; gap: 15px; }
+        .currency-pill { 
+            background: rgba(0,162,255,0.1); color: var(--accent); 
+            padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 13px;
+        }
+
+        /* --- PAGES (Hidden by default) --- */
+        .page { display: none; padding: 30px 10%; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- UI ELEMENTS --- */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; margin-top: 20px; }
+        .card { 
+            background: var(--card); border-radius: 12px; padding: 15px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); cursor: pointer; 
+        }
+        .card:hover { transform: translateY(-5px); }
+        .card .thumb { width: 100%; aspect-ratio: 1/1; background: #333; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; font-size: 40px; }
+
+        .btn { 
+            background: var(--accent); color: white; border: none; padding: 10px 20px; 
+            border-radius: 6px; font-weight: 700; cursor: pointer; 
+        }
+        .btn-outline { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
+
+        /* --- AUTH MODAL --- */
+        #auth-overlay {
+            position: fixed; inset: 0; background: var(--bg); z-index: 1000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .auth-box { background: var(--nav); padding: 40px; border-radius: 15px; width: 100%; max-width: 400px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 6px; border: 1px solid #333; background: #000; color: white; }
+    </style>
+</head>
+<body data-theme="dark">
+
+    <div id="auth-overlay" style="display: none;">
+        <div class="auth-box">
+            <h1 class="logo">RE<span>TAPLOX</span></h1>
+            <p style="color: var(--subtext); margin: 10px 0 25px;">Create your local-only identity</p>
+            <input type="text" id="username-input" placeholder="Username" maxlength="15">
+            <button class="btn" style="width: 100%; margin-top: 10px;" onclick="Logic.register()">Enter Platform</button>
+        </div>
+    </div>
+
+    <nav id="navbar">
+        <div class="logo" onclick="Logic.showPage('home')">RE<span>TAPLOX</span></div>
+        <div class="nav-links">
+            <div class="nav-item" onclick="Logic.showPage('home')">Home</div>
+            <div class="nav-item" onclick="Logic.showPage('games')">Games</div>
+            <div class="nav-item" onclick="Logic.showPage('creator')">Creator</div>
+        </div>
+        <div class="user-stats">
+            <div class="currency-pill">⟁ <span id="stat-currency">0</span></div>
+            <div class="nav-item" onclick="Logic.showPage('profile')" id="stat-username">Profile</div>
+            <button class="btn-outline" style="padding: 4px 8px; font-size: 10px;" onclick="Logic.toggleTheme()">🌓</button>
+        </div>
+    </nav>
+
+    <div id="page-home" class="page">
+        <h2>Welcome back, <span id="welcome-name">User</span>!</h2>
+        <p style="color: var(--subtext)">Continue where you left off.</p>
+        <div class="grid">
+            <div class="card" onclick="alert('Launching Mock Game...')">
+                <div class="thumb">🎮</div>
+                <b>Blox Tycoon</b>
+                <div style="font-size: 12px; color: var(--subtext)">98% Approval</div>
+            </div>
+            <div class="card">
+                <div class="thumb">⚔️</div>
+                <b>Sword Fight</b>
+                <div style="font-size: 12px; color: var(--subtext)">1.2k Playing</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-games" class="page">
+        <h2>Discover Games</h2>
+        <div class="grid" id="games-list">
+            </div>
+    </div>
+
+    <div id="page-profile" class="page">
+        <div style="background: var(--nav); padding: 40px; border-radius: 15px; text-align: center;">
+            <div style="width: 100px; height: 100px; background: #444; border-radius: 50%; margin: 0 auto 20px; font-size: 50px;">👤</div>
+            <h1 id="profile-name">Username</h1>
+            <p id="profile-id" style="color: var(--subtext); font-size: 13px;">ID: 000000</p>
+            <div style="margin-top: 20px; display: flex; justify-content: center; gap: 20px;">
+                <div><b id="profile-currency">0</b><br><small>Taps</small></div>
+                <div><b>1</b><br><small>Account</small></div>
+            </div>
+            <button class="btn-outline" style="margin-top: 30px; border-color: #ff4444; color: #ff4444;" onclick="Logic.wipe()">Reset Device Data</button>
+        </div>
+    </div>
+
+    <div id="page-creator" class="page">
+        <h2>Creator Dashboard</h2>
+        <div style="padding: 40px; border: 2px dashed #444; border-radius: 15px; text-align: center; margin-top: 20px;">
+            <p>Mock Creator Studio is currently locked.</p>
+            <button class="btn" style="margin-top: 15px;" disabled>Create New Experience</button>
+        </div>
+    </div>
+
+    <script>
+        const Logic = {
+            // CENTRAL STATE
+            state: {
+                user: null,
+                currentPage: 'home',
+                theme: 'dark'
+            },
+
+            // INITIALIZE SYSTEM
+            init() {
+                const savedUser = localStorage.getItem('RETAPLOX_USER');
+                const savedTheme = localStorage.getItem('RETAPLOX_THEME');
+
+                if (savedTheme) this.setTheme(savedTheme);
+
+                if (savedUser) {
+                    this.state.user = JSON.parse(savedUser);
+                    this.updateUI();
+                    this.showPage('home');
+                } else {
+                    document.getElementById('auth-overlay').style.display = 'flex';
+                }
+            },
+
+            // ACCOUNT REMEMBERER (Registration)
+            register() {
+                const name = document.getElementById('username-input').value.trim();
+                if (!name) return alert("Enter a username!");
+
+                this.state.user = {
+                    username: name,
+                    currency: 150,
+                    id: Math.floor(Math.random() * 900000) + 100000,
+                    inventory: []
+                };
+
+                localStorage.setItem('RETAPLOX_USER', JSON.stringify(this.state.user));
+                document.getElementById('auth-overlay').style.display = 'none';
+                this.updateUI();
+                this.showPage('home');
+            },
+
+            // ROUTING (Hidden Div Toggling)
+            showPage(pageId) {
+                this.state.currentPage = pageId;
+                document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+                document.getElementById(`page-${pageId}`).style.display = 'block';
+                window.scrollTo(0,0);
+            },
+
+            // UI UPDATER
+            updateUI() {
+                if (!this.state.user) return;
+                document.getElementById('stat-currency').innerText = this.state.user.currency;
+                document.getElementById('stat-username').innerText = this.state.user.username;
+                document.getElementById('welcome-name').innerText = this.state.user.username;
+                document.getElementById('profile-name').innerText = this.state.user.username;
+                document.getElementById('profile-id').innerText = `ID: ${this.state.user.id}`;
+                document.getElementById('profile-currency').innerText = this.state.user.currency;
+            },
+
+            // THEME SWITCHER
+            toggleTheme() {
+                const newTheme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                this.setTheme(newTheme);
+            },
+
+            setTheme(theme) {
+                document.body.setAttribute('data-theme', theme);
+                localStorage.setItem('RETAPLOX_THEME', theme);
+            },
+
+            // RESET LOGIC
+            wipe() {
+                if (confirm("This will permanently delete your local account data. Continue?")) {
+                    localStorage.removeItem('RETAPLOX_USER');
+                    location.reload();
+                }
+            }
+        };
+
+        // Start Platform
+        Logic.init();
+    </script>
+</body>
+</html>
