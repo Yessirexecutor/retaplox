@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RETAPLOX | One-File Platform</title>
+    <style>
+        /* --- RETAPLOX DESIGN SYSTEM --- */
+        :root {
+            --bg: #121212;
+            --nav: #1e1e1e;
+            --card: #252525;
+            --text: #ffffff;
+            --subtext: #aaaaaa;
+            --accent: #00a2ff;
+            --baseplate: #3a3a3a;
+            --font: 'Segoe UI', Roboto, Arial, sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text); font-family: var(--font); overflow-x: hidden; }
+
+        /* --- AUTH SCREEN --- */
+        #auth-overlay {
+            position: fixed; inset: 0; background: var(--bg); z-index: 1000;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .auth-box { background: var(--nav); padding: 40px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .logo { font-weight: 800; font-size: 28px; letter-spacing: -1px; margin-bottom: 20px; }
+        .logo span { color: var(--accent); }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #333; background: #000; color: white; outline: none; }
+        input:focus { border-color: var(--accent); }
+
+        /* --- NAVIGATION --- */
+        #navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 5%; height: 65px; background: var(--nav);
+            border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 100;
+        }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-item { cursor: pointer; font-weight: 600; color: var(--subtext); transition: 0.2s; }
+        .nav-item:hover { color: var(--text); }
+        .currency-pill { background: rgba(0,162,255,0.1); color: var(--accent); padding: 6px 15px; border-radius: 20px; font-weight: 700; }
+
+        /* --- PAGE SYSTEM --- */
+        .page { display: none; padding: 40px 10%; animation: slideUp 0.4s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- THE 3D BASEPLATE --- */
+        .baseplate-viewport {
+            width: 100%; height: 300px; background: #1a1a1a; 
+            border-radius: 20px; position: relative; overflow: hidden;
+            perspective: 800px; border: 4px solid var(--nav);
+        }
+        .grid-floor {
+            position: absolute; width: 200%; height: 200%; top: 20%; left: -50%;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.05) 2px, transparent 2px),
+                linear-gradient(90deg, rgba(255,255,255,0.05) 2px, transparent 2px);
+            background-size: 40px 40px; transform: rotateX(70deg);
+            background-color: var(--baseplate);
+        }
+        .avatar-container {
+            position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+            font-size: 100px; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5));
+            animation: float 3s ease-in-out infinite; z-index: 5;
+        }
+        @keyframes float { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-15px); } }
+
+        /* --- UI HELPERS --- */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 25px; margin-top: 30px; }
+        .card { background: var(--card); border-radius: 15px; padding: 20px; cursor: pointer; transition: 0.3s; }
+        .card:hover { transform: translateY(-8px); background: #2d2d2d; }
+        .card-img { width: 100%; aspect-ratio: 1; background: #333; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; font-size: 50px; }
+        .btn { background: var(--accent); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; cursor: pointer; width: 100%; }
+        .btn:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div id="auth-overlay">
+        <div class="auth-box">
+            <h1 class="logo">RE<span>TAPLOX</span></h1>
+            <input type="text" id="reg-user" placeholder="Create Username">
+            <input type="password" id="reg-pass" placeholder="Password (Stored Locally)">
+            <button class="btn" onclick="Logic.register()">Enter Platform</button>
+        </div>
+    </div>
+
+    <nav id="navbar">
+        <div class="logo" onclick="Logic.showPage('home')">RE<span>TAPLOX</span></div>
+        <div class="nav-links">
+            <div class="nav-item" onclick="Logic.showPage('home')">Home</div>
+            <div class="nav-item" onclick="Logic.showPage('games')">Games</div>
+            <div class="nav-item" onclick="Logic.showPage('profile')">Avatar</div>
+        </div>
+        <div class="nav-links">
+            <div class="currency-pill">⟁ <span id="nav-currency">0</span></div>
+        </div>
+    </nav>
+
+    <div id="page-home" class="page">
+        <h1>Welcome back, <span id="home-username">User</span></h1>
+        <div class="grid" id="home-featured">
+            </div>
+    </div>
+
+    <div id="page-games" class="page">
+        <h2>All Experiences</h2>
+        <div class="grid" id="games-list"></div>
+    </div>
+
+    <div id="page-profile" class="page">
+        <h2 id="profile-display-name">Username</h2>
+        <p style="color: var(--subtext); margin-bottom: 20px;">Character Preview</p>
+        
+        <div class="baseplate-viewport">
+            <div class="grid-floor"></div>
+            <div class="avatar-container">👤</div>
+        </div>
+
+        <div style="margin-top: 30px; display: flex; gap: 15px;">
+            <div class="card" style="flex: 1; text-align: center;">
+                <h3 id="prof-taps">0</h3>
+                <small>Taps</small>
+            </div>
+            <div class="card" style="flex: 1; text-align: center;">
+                <h3>1</h3>
+                <small>Account</small>
+            </div>
+        </div>
+        <button class="btn" style="margin-top: 20px; background: #444;" onclick="Logic.wipe()">Log Out & Clear Device</button>
+    </div>
+
+    <script>
+        const Logic = {
+            state: {
+                user: null,
+                games: [
+                    { name: "Baseplate Tycoon", icon: "🏗️", rating: "92%" },
+                    { name: "Sword Legends", icon: "⚔️", rating: "85%" },
+                    { name: "Speed Run X", icon: "🏃", rating: "98%" },
+                    { name: "Work at a Cafe", icon: "☕", rating: "90%" }
+                ]
+            },
+
+            init() {
+                const saved = localStorage.getItem('RETAPLOX_SAVE');
+                if (saved) {
+                    this.state.user = JSON.parse(saved);
+                    this.loadPlatform();
+                }
+            },
+
+            register() {
+                const user = document.getElementById('reg-user').value.trim();
+                const pass = document.getElementById('reg-pass').value.trim();
+                
+                if (user.length < 3) return alert("Username too short!");
+
+                this.state.user = {
+                    name: user,
+                    currency: 250,
+                    joined: new Date().getFullYear()
+                };
+
+                localStorage.setItem('RETAPLOX_SAVE', JSON.stringify(this.state.user));
+                this.loadPlatform();
+            },
+
+            loadPlatform() {
+                document.getElementById('auth-overlay').style.display = 'none';
+                this.updateUI();
+                this.renderGames();
+                this.showPage('home');
+            },
+
+            showPage(pageId) {
+                document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+                document.getElementById(`page-${pageId}`).style.display = 'block';
+            },
+
+            updateUI() {
+                const u = this.state.user;
+                document.getElementById('nav-currency').innerText = u.currency;
+                document.getElementById('home-username').innerText = u.name;
+                document.getElementById('profile-display-name').innerText = u.name;
+                document.getElementById('prof-taps').innerText = u.currency;
+            },
+
+            renderGames() {
+                const html = this.state.games.map(g => `
+                    <div class="card" onclick="alert('Starting ${g.name}...')">
+                        <div class="card-img">${g.icon}</div>
+                        <b>${g.name}</b><br>
+                        <small style="color:var(--subtext)">${g.rating} Approval</small>
+                    </div>
+                `).join('');
+                document.getElementById('games-list').innerHTML = html;
+                document.getElementById('home-featured').innerHTML = html;
+            },
+
+            wipe() {
+                if(confirm("Wipe local device account?")) {
+                    localStorage.clear();
+                    location.reload();
+                }
+            }
+        };
+
+        Logic.init();
+    </script>
+</body>
+</html>
